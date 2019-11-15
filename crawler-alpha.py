@@ -11,11 +11,12 @@ HEADERS = {
 def addToList(processedList, value):
     if value not in processedList:
         REDIS.lpush("unprocessedLinks", str(value))
+        processedList.append(value)
     return
 
 def getFromList():
     if REDIS.llen("unprocessedlinks") == 0:
-        return REDDIT
+        return None
     return str(REDIS.rpop("unprocessedlinks"))
 
 # Open link to redis and check that connection has been made
@@ -32,6 +33,9 @@ def redisCheckConnection(maxRetries):
 
 while True:
     link = getFromList()
+    if link is None:
+        break
+    
     try:
         r = requests.get(link, headers=HEADERS)
     except requests.exceptions.RequestException as e:
